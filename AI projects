@@ -1,0 +1,206 @@
+TASKS
+          CODXO INTERNSHIP
+TASK 1:- Fake News Detector
+import numpy as np 
+import pandas as pd 
+import json 
+import csv 
+import random 
+  
+from tensorflow.keras.preprocessing.text import Tokenizer 
+from tensorflow.keras.preprocessing.sequence import pad_sequences 
+from tensorflow.keras.utils import to_categorical 
+from tensorflow.keras import regularizers 
+  
+import pprint 
+import tensorflow.compat.v1 as tf 
+from tensorflow.python.framework import ops 
+from sklearn.model_selection import train_test_split 
+from sklearn import preprocessing 
+tf.disable_eager_execution() 
+  
+# Reading the data 
+data = pd.read_csv("news.csv") 
+data.head() 
+
+
+
+ 
+
+
+
+TASK 2:- Autocorrect Tool
+
+  import re  
+from collections import Counter
+import numpy as np
+import pandas as pd
+
+w = [] 
+with open('sample.txt','r',encoding="utf8") as f:
+    file_name_data = f.read()
+    file_name_data = file_name_data.lower()
+    w = re.findall('\w+', file_name_data)
+
+v = set(w) 
+print(f"The first 10 words in our dictionary are: \n{w[0:10]}")
+print(f"The dictionary has {len(v)} words ")
+
+def get_count(words):
+    word_count = {}
+    for word in words:
+        if word in word_count:
+            word_count[word] += 1
+        else:
+            word_count[word] = 1
+    return word_count
+
+word_count = get_count(w)
+print(f"The dictionary has  {len(word_count)} key values pairs")
+
+def get_probs(word_count_dict):
+    probs = {}
+    m = sum(word_count_dict.values())
+    for key in word_count_dict.keys():
+        probs[key] = word_count_dict[key] / m
+    return probs
+
+def DeleteLetter(word):
+    delete_list = []
+    split_list = []
+    for i in range(len(word)):
+        split_list.append((word[0:i], word[i:]))
+    for a, b in split_list:
+        delete_list.append(a + b[1:])
+    return delete_list
+
+delete_word_l = DeleteLetter(word="cans")
+
+def SwitchLetter(word):
+    split_l = []
+    switch_l = []
+    for i in range(len(word)):
+        split_l.append((word[0:i], word[i:]))
+    switch_l = [a + b[1] + b[0] + b[2:] for a, b in split_l if len(b) >= 2]
+    return switch_l
+
+switch_word_l = SwitchLetter(word="eta")
+
+def replace_letter(word):
+    split_l = []
+    replace_list = []
+    for i in range(len(word)):
+        split_l.append((word[0:i], word[i:]))
+    alphabets = 'abcdefghijklmnopqrstuvwxyz'
+    replace_list = [a + l + (b[1:] if len(b) > 1 else '') for a, b in split_l if b for l in alphabets]
+    return replace_list
+
+replace_l = replace_letter(word='can')
+
+def insert_letter(word):
+    split_l = []
+    insert_list = []
+    for i in range(len(word) + 1):
+        split_l.append((word[0:i], word[i:]))
+    letters = 'abcdefghijklmnopqrstuvwxyz'
+    insert_list = [a + l + b for a, b in split_l for l in letters]
+    return insert_list
+
+def edit_one_letter(word, allow_switches=True):
+    edit_set1 = set()
+    edit_set1.update(DeleteLetter(word))
+    if allow_switches:
+        edit_set1.update(SwitchLetter(word))
+    edit_set1.update(replace_letter(word))
+    edit_set1.update(insert_letter(word))
+    return edit_set1
+
+def edit_two_letters(word, allow_switches=True):
+    edit_set2 = set()
+    edit_one = edit_one_letter(word, allow_switches=allow_switches)
+    for w in edit_one:
+        if w:
+            edit_two = edit_one_letter(w, allow_switches=allow_switches)
+            edit_set2.update(edit_two)
+    return edit_set2
+
+def get_corrections(word, probs, vocab, n=2):
+    suggested_word = []
+    best_suggestion = []
+    suggested_word = list(
+        (word in vocab and word) or edit_one_letter(word).intersection(vocab) or edit_two_letters(word).intersection(
+            vocab))
+    best_suggestion = [[s, probs[s]] for s in list(reversed(suggested_word))]
+    return best_suggestion
+
+my_word = input("Enter any word:")
+probs = get_probs(word_count)
+tmp_corrections = get_corrections(my_word, probs, v, 2)
+for i, word_prob in enumerate(tmp_corrections):
+    print(f"word {i}: {word_prob[0]}, probability {word_prob[1]:.6f}")
+
+ 
+
+
+
+TASK 3:- Translator App
+
+from tkinter import *
+from tkinter import ttk
+from googletrans import Translator, LANGUAGES
+
+root = Tk()
+root.geometry('1100x320') 
+root.resizable(0, 0) 
+root['bg'] = 'pink' 
+root.title('Real-time translator')
+
+Label(root, text="Language Translator", font="Arial 20 bold").pack()
+
+Label(root, text="Enter Text", font='arial 13 bold', bg='white smoke').place(x=165, y=90)
+
+Input_text = Entry(root, width=60)
+Input_text.place(x=30, y=130)
+
+Label(root, text="Output", font='arial 13 bold', bg='white smoke').place(x=780, y=90)
+
+Output_text = Text(root, font='arial 10', height=5, wrap=WORD, padx=5, pady=5, width=50)
+Output_text.place(x=600, y=130)
+
+language = list(LANGUAGES.values())
+
+dest_lang = ttk.Combobox(root, values=language, width=22)
+dest_lang.place(x=130, y=180)
+dest_lang.set('Choose Language') 
+def Translate():
+    try:
+        
+        translator = Translator()
+        
+        translation = translator.translate(Input_text.get(), dest=dest_lang.get())
+        
+        Output_text.delete(1.0, END)
+        Output_text.insert(END, translation.text)
+    except Exception as e:
+        print(f"Translation error: {e}")
+
+trans_btn = Button(root, text='Translate', font='arial 12 bold', pady=5, command=Translate, bg='orange', activebackground='green')
+trans_btn.place(x=445, y=180)
+
+root.mainloop()
+
+
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
